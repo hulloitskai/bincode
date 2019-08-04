@@ -15,6 +15,8 @@
 import Clipboard from "clipboard";
 import Nav from "@/components/Nav";
 
+import { screenSizes, getScreenSize } from "@/styles/breakpoints";
+
 export default {
   data: () => ({ offset: 0, locked: false, cardStyle: {} }),
 
@@ -30,6 +32,7 @@ export default {
 
   methods: {
     lockCardOffset() {
+      if (getScreenSize() <= screenSizes.PHABLET) return;
       const { top } = this.$refs.card.getBoundingClientRect();
       const margin = `${Math.max(top, 40)}px`;
       this.cardStyle = { marginTop: margin, marginBottom: margin };
@@ -43,6 +46,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/breakpoints.scss";
+
 .home {
   width: 100%;
   min-height: 100vh;
@@ -55,11 +60,16 @@ export default {
 
 .card {
   flex: 1;
-  margin: 40px 0;
-  max-width: 700px;
-  border-radius: 8px;
+  align-self: stretch;
   background: white;
   box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.3);
+
+  @include breakpoint(phablet) {
+    align-self: auto;
+    margin: 40px;
+    max-width: 700px;
+    border-radius: 8px;
+  }
 }
 
 .content {
