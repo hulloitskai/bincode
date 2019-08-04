@@ -48,6 +48,7 @@ export default {
       setTimeoutFrom(start, () => scrollIntoView(this.$refs.copy.$el), 200);
     },
   },
+  metaInfo: { title: "Decode" },
   components: {
     field: Field,
     "custom-button": Button,

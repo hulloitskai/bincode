@@ -8,6 +8,9 @@
 import Home from "./views/Home";
 
 export default {
+  metaInfo: {
+    titleTemplate: "Bincode – %s",
+  },
   components: {
     home: Home,
   },
