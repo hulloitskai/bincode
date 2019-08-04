@@ -26,7 +26,6 @@
       <custom-button
         class="copy"
         ref="copy"
-        :theme="theme.DARK"
         data-clipboard-target="#decode-result.input"
       >
         copy
@@ -58,10 +57,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-// prettier-ignore
 .field {
+  // prettier-ignore
   &.input { height: 391px; }
-  &.result { margin-top: 16px; }
+  &.result {
+    height: 200px;
+    margin-top: 16px;
+  }
 }
 
 .button {

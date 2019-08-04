@@ -71,8 +71,10 @@ export default {
     margin-top: 12px;
   }
 
-  // prettier-ignore
-  &.result { margin-top: 16px; }
+  &.result {
+    margin-top: 16px;
+    height: 200px;
+  }
 }
 
 .button {

@@ -28,7 +28,7 @@ func main() {
 	app.Action = run
 
 	// Hide help command.
-	app.Commands = []cli.Command{cli.Command{Name: "help", Hidden: true}}
+	app.Commands = []cli.Command{{Name: "help", Hidden: true}}
 
 	// Configure flags.
 	app.Flags = []cli.Flag{
