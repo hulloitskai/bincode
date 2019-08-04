@@ -1,0 +1,118 @@
+kind: pipeline
+name: frontend
+
+steps:
+  # TODO: Restore caching after configuring local Minio cache (AWS is too
+  # pricy!)
+  #
+  # - name: restore_cache
+  #   image: plugins/s3-cache
+  #   environment: &cache_env
+  #     AWS_ACCESS_KEY_ID:
+  #       from_secret: aws_access_key
+  #     AWS_SECRET_ACCESS_KEY:
+  #       from_secret: aws_secret_key
+  #   settings:
+  #     root: &cache_root columbia-drone-cache
+  #     restore: true
+
+  - name: install
+    image: node:12-alpine
+    commands:
+      - cd client
+      - yarn install
+
+  - name: lint
+    image: node:12-alpine
+    commands:
+      - cd client
+      - yarn lint --no-fix --max-warnings 0
+    environment:
+      NODE_ENV: production
+
+  # - name: rebuild_cache
+  #   image: plugins/s3-cache
+  #   environment: *cache_env
+  #   settings:
+  #     root: *cache_root
+  #     rebuild: true
+  #     mount: node_modules
+  #   when:
+  #     event: push
+
+trigger:
+  event:
+    exclude: ["tag"]
+
+---
+
+kind: pipeline
+name: backend
+
+steps:
+  - name: lint
+    image: stevenxie/revive
+    commands: ["revive -config .revive.toml ./..."]
+
+  - name: info
+    image: alpine/git
+    commands:
+      - git fetch --tags
+      - git describe --tags 2> /dev/null | cut -c 2- > /info/version
+      - git rev-parse HEAD 2> /dev/null > /info/commit
+      - git rev-parse --abbrev-ref HEAD 2> /dev/null > /info/branch
+      - head -1 < go.mod | awk '{print $2}' 2> /dev/null > /info/module
+      - tail -n +1 /info/*
+    volumes:
+      - name: info
+        path: /info
+
+  - name: build_binary
+    image: golang:1.12
+    commands:
+      - export MOD="$(cat /info/module)"
+      - |
+        [ -s /info/version ] && \
+          export VER="$(cat /info/version)" || \
+          export VER="$(cat /info/commit)"
+      - export LDFLAGS="-X $${MOD}/internal/info.Version=$${VER}"
+      - echo "LDFLAGS=$${LDFLAGS}" 1>&2
+      - go test -ldflags "$LDFLAGS" -race ./...
+      - export CGO_ENABLED=0
+      - go build -ldflags "$LDFLAGS" -o ./dist/server ./cmd/server
+    environment:
+      GO111MODULE: 'on'
+      GOPROXY: https://goproxy.io
+    volumes:
+      - name: info
+        path: /info
+
+  - name: build_image
+    image: stevenxie/kaniko-drone
+    settings:
+      repo: stevenxie/bincode
+      tags:
+        - $(printf '%s-%s' $(cat /i/branch | tr / -) $(cat /i/commit))
+        - |
+          $([ $(cat /i/branch) == master ] && \
+             [ $DRONE_BUILD_EVENT == push ] && \
+             echo latest || true)
+        - |
+          $([ $(cat /i/branch) == master ] && \
+             [ $DRONE_BUILD_EVENT == push ] && \
+             cat /i/version || true)
+      username: stevenxie
+      password:
+        from_secret: docker_pass
+    volumes:
+      - name: info
+        path: /i
+
+
+volumes:
+  - name: info
+    temp: {}
+
+trigger:
+  event:
+    exclude: ["tag"]
