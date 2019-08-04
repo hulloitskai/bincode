@@ -25,7 +25,7 @@ export default {
     // DO NOT EVER DO ANYTHING LIKE THIS EVER AGAIN.
     setTimeout(this.lockCardOffset, 1000);
 
-    this.clipboard = new Clipboard(".copy");
+    this.clipboard = new Clipboard(".copy-button");
   },
   // prettier-ignore
   beforeDestroy() { this.clipboard.destroy(); },

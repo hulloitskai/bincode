@@ -22,21 +22,14 @@
         readonly
         mono
       />
-      <custom-button
-        class="copy"
-        ref="copy"
-        :theme="theme.DARK"
-        data-clipboard-target="#encode-result.input"
-      >
-        copy
-      </custom-button>
+      <copy-button target="#encode-result.input" :theme="theme.DARK" />
     </section>
   </div>
 </template>
 
 <script>
 import Field from "@/components/Field";
-import Button from "@/components/Button";
+import Button, { CopyButton } from "@/components/Button";
 
 import theme from "@/types/theme";
 import bincode from "@/services/bincode";
@@ -57,6 +50,7 @@ export default {
   components: {
     field: Field,
     "custom-button": Button,
+    "copy-button": CopyButton,
   },
 };
 </script>

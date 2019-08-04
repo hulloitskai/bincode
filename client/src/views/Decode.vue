@@ -23,35 +23,30 @@
         multiline
         readonly
       />
-      <custom-button
-        class="copy"
-        ref="copy"
-        data-clipboard-target="#decode-result.input"
-      >
-        copy
-      </custom-button>
+      <copy-button target="#decode-result.input" />
     </section>
   </div>
 </template>
 
 <script>
 import Field from "@/components/Field";
-import Button from "@/components/Button";
+import Button, { CopyButton } from "@/components/Button";
 
 import theme from "@/types/theme";
 import bincode from "@/services/bincode";
 
 export default {
   data: () => ({ text: "", result: "", theme }),
-  components: {
-    field: Field,
-    "custom-button": Button,
-  },
   methods: {
     async handleSubmit() {
       if (!this.text) return;
       this.result = await bincode.decode(this.text);
     },
+  },
+  components: {
+    field: Field,
+    "custom-button": Button,
+    "copy-button": CopyButton,
   },
 };
 </script>
