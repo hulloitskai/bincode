@@ -3,6 +3,8 @@ package encode
 import (
 	stderrs "errors"
 	"io"
+
+	"github.com/cockroachdb/errors"
 )
 
 // NewDecoder creates a new Decoder that decodes data from a binary
@@ -36,11 +38,13 @@ type (
 
 func (d Decoder) Read(p []byte) (n int, err error) {
 	for i := range p {
-		const wl = 8
-		word := make([]byte, wl)
+		word := make([]byte, 8)
 		n, err := d.src.Read(word)
-		if n != wl {
+		if n != len(word) {
 			if err != nil {
+				if errors.Is(err, io.EOF) && (n > 0) {
+					return i, ErrShortWord
+				}
 				return i, err
 			}
 			return i, ErrShortWord

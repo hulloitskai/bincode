@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"time"
 
-	"go.stevenxie.me/bincode/server"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+
 	"go.stevenxie.me/bincode/internal/info"
+	"go.stevenxie.me/bincode/server"
 )
 
 func main() {

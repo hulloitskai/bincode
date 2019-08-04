@@ -5,11 +5,10 @@ import (
 	"io"
 	"os"
 
-	"go.stevenxie.me/bincode/internal/info"
-
 	"github.com/cockroachdb/errors"
 	"github.com/urfave/cli"
 	"go.stevenxie.me/bincode/encode"
+	"go.stevenxie.me/bincode/internal/info"
 )
 
 func main() {

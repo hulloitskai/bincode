@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"strings"
 
-	"go.stevenxie.me/bincode/encode"
-
 	"github.com/cockroachdb/errors"
-
 	echo "github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+
 	"go.stevenxie.me/api/pkg/httputil"
+	"go.stevenxie.me/bincode/encode"
 )
 
 // EncodeHandler returns an echo.HandlerFunc handles requests to encode an

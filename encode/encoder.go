@@ -33,10 +33,9 @@ type Encoder struct {
 func (e Encoder) Write(p []byte) (n int, err error) {
 	var ki int // key index
 	for _, b := range p {
-		const wl = 8
 		word := make([]byte, 8)
 
-		for i := 0; i < wl; i++ {
+		for i := range word {
 			c := e.key[ki]
 			if (b>>uint(7-i))&1 == 1 { // black magic
 				c = c - ('a' - 'A') // capitalize

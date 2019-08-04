@@ -1,8 +1,6 @@
 package server
 
-import (
-	"github.com/cockroachdb/errors"
-)
+import "github.com/cockroachdb/errors"
 
 // ListenAndServe listens and serves on an API for encoding and decoding binary
 // representation formats.
