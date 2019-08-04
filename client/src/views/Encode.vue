@@ -22,7 +22,11 @@
         readonly
         mono
       />
-      <copy-button target="#encode-result.input" :theme="theme.DARK" />
+      <copy-button
+        target="#encode-result.input"
+        :theme="theme.DARK"
+        ref="copy"
+      />
     </section>
   </div>
 </template>
@@ -33,6 +37,8 @@ import Button, { CopyButton } from "@/components/Button";
 
 import theme from "@/types/theme";
 import bincode from "@/services/bincode";
+import { scrollIntoView } from "@/utils/dom";
+import { setTimeoutFrom } from "@/utils/time";
 
 export default {
   data: () => ({
@@ -43,8 +49,10 @@ export default {
   }),
   methods: {
     async handleSubmit() {
+      const start = new Date();
       if (!this.key || !this.text) return;
       this.result = await bincode.encode(this.key, { plaintext: this.text });
+      setTimeoutFrom(start, () => scrollIntoView(this.$refs.copy.$el), 200);
     },
   },
   components: {

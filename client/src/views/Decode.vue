@@ -22,8 +22,9 @@
         v-model="result"
         multiline
         readonly
+        ref="copy"
       />
-      <copy-button target="#decode-result.input" />
+      <copy-button target="#decode-result.input" ref="copy" />
     </section>
   </div>
 </template>
@@ -34,13 +35,17 @@ import Button, { CopyButton } from "@/components/Button";
 
 import theme from "@/types/theme";
 import bincode from "@/services/bincode";
+import { scrollIntoView } from "@/utils/dom";
+import { setTimeoutFrom } from "@/utils/time";
 
 export default {
   data: () => ({ text: "", result: "", theme }),
   methods: {
     async handleSubmit() {
+      const start = new Date();
       if (!this.text) return;
       this.result = await bincode.decode(this.text);
+      setTimeoutFrom(start, () => scrollIntoView(this.$refs.copy.$el), 200);
     },
   },
   components: {
