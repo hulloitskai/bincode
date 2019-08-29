@@ -69,5 +69,5 @@ func (d Decoder) Read(p []byte) (n int, err error) {
 }
 
 // ErrShortWord is returned by a Decoder when it attempts to decode a binary
-// 'word', only to receive less than 8 bytes from the source reader.
+// 'word', only to receive less than 8 bits from the source reader.
 var ErrShortWord = stderrs.New("encode: word too short")
