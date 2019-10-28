@@ -11,11 +11,13 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"go.stevenxie.me/bincode/encode"
+	"go.stevenxie.me/gopkg/logutil"
 )
 
 // DecodeHandler returns an echo.HandlerFunc handles requests to decode from
 // a binary representation format.
-func DecodeHandler(log logrus.FieldLogger) echo.HandlerFunc {
+func DecodeHandler(log *logrus.Entry) echo.HandlerFunc {
+	log = logutil.WithComponent(log, DecodeHandler)
 	return func(c echo.Context) error {
 		body := c.Request().Body
 		defer body.Close()

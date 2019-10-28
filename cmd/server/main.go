@@ -8,7 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/pkg/errors"
+	"go.stevenxie.me/api/v2/pkg/basic"
+	"go.stevenxie.me/gopkg/cmdutil"
+
+	"github.com/cockroachdb/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -57,15 +60,11 @@ func main() {
 
 func run(c *cli.Context) error {
 	// Init logger.
-	log := buildLogger()
+	log := cmdutil.NewLogger()
 
 	// Create and configure server.
 	log.Info("Initializing server...")
-	srv := server.New(
-		func(cfg *server.Config) {
-			cfg.Logger = log
-		},
-	)
+	srv := server.New(basic.WithLogger(log))
 
 	// Shut down server gracefully upon interrupt.
 	{
@@ -88,7 +87,7 @@ func run(c *cli.Context) error {
 
 func shutdownUponInterrupt(
 	srv *server.Server,
-	log logrus.FieldLogger,
+	log *logrus.Entry,
 	timeout *time.Duration,
 ) {
 	sig := make(chan os.Signal)

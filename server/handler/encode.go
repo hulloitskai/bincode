@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/errors"
+	"github.com/cockroachdb/errors/exthttp"
 	echo "github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 
-	"go.stevenxie.me/api/pkg/httputil"
 	"go.stevenxie.me/bincode/encode"
+	"go.stevenxie.me/gopkg/logutil"
 )
 
 // EncodeHandler returns an echo.HandlerFunc handles requests to encode an
@@ -22,7 +23,8 @@ import (
 //   key  – An alphabetical key to encode the data with.
 //   text – Text to encode, mutually exclusive with the 'file' field.
 //   file – File to encode, mutually exclusive with the 'text' field.
-func EncodeHandler(log logrus.FieldLogger) echo.HandlerFunc {
+func EncodeHandler(log *logrus.Entry) echo.HandlerFunc {
+	log = logutil.WithComponent(log, EncodeHandler)
 	return func(c echo.Context) error {
 		// Parse form fields.
 		fields, err := c.FormParams()
@@ -34,8 +36,8 @@ func EncodeHandler(log logrus.FieldLogger) echo.HandlerFunc {
 		{
 			const field = "key"
 			if key = c.FormValue(field); key == "" {
-				httputil.SetEchoStatusCode(c, http.StatusBadRequest)
-				return errors.Newf("missing form field '%s'", field)
+				err = errors.Newf("missing form field '%s'", field)
+				return exthttp.WrapWithHTTPCode(err, http.StatusBadRequest)
 			}
 		}
 
@@ -64,11 +66,11 @@ func EncodeHandler(log logrus.FieldLogger) echo.HandlerFunc {
 				header, err := c.FormFile(fileField)
 				if err != nil {
 					if errors.Is(err, http.ErrMissingFile) {
-						httputil.SetEchoStatusCode(c, http.StatusBadRequest)
-						return errors.Newf(
+						err := errors.Newf(
 							"one of form fields '%s' or '%s' must be present",
 							fileField, textField,
 						)
+						return exthttp.WrapWithHTTPCode(err, http.StatusBadRequest)
 					}
 					log.WithError(err).Error("Failed to read from file.")
 					return errors.Wrap(err, "reading form file")

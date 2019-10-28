@@ -40,19 +40,42 @@ steps:
   #   when:
   #     event: push
 
-trigger:
-  event:
-    exclude: ["tag"]
-
 ---
 
 kind: pipeline
 name: backend
 
 steps:
+  - name: install
+    image: golang:1.13
+    commands:
+      - go mod tidy
+      - go mod download
+      - go mod verify
+    environment:
+      GOPRIVATE: go.stevenxie.me/api
+    volumes:
+      - name: gopath
+        path: /go
+
+  - name: diff
+    image: alpine/git
+    commands:
+      - |
+        if ! git diff --exit-code HEAD; then
+          echo "Generated files differ from commit." >&2 && \
+          exit 1
+        fi
+
   - name: lint
-    image: stevenxie/revive
-    commands: ["revive -config .revive.toml ./..."]
+    image: stevenxie/golinter
+    settings:
+      revive_config: .revive.toml
+    environment:
+      CGO_ENABLED: '0'
+    volumes:
+      - name: gopath
+        path: /go
 
   - name: info
     image: alpine/git
@@ -68,22 +91,22 @@ steps:
         path: /info
 
   - name: build_binary
-    image: golang:1.12
+    image: golang:1.13
     commands:
       - export MOD="$(cat /info/module)"
       - |
         [ -s /info/version ] && \
           export VER="$(cat /info/version)" || \
           export VER="$(cat /info/commit)"
-      - export LDFLAGS="-X $${MOD}/internal/info.Version=$${VER}"
+      - export LDFLAGS="-X $${MOD}/internal.Version=$${VER}"
       - echo "LDFLAGS=$${LDFLAGS}" 1>&2
       - go test -ldflags "$LDFLAGS" -race ./...
       - export CGO_ENABLED=0
-      - go build -ldflags "$LDFLAGS" -o ./dist/server ./cmd/server
-    environment:
-      GO111MODULE: 'on'
-      GOPROXY: https://goproxy.io
+      - mkdir dist
+      - go build -trimpath -ldflags "$LDFLAGS" -o ./dist/ ./cmd/...
     volumes:
+      - name: gopath
+        path: /go
       - name: info
         path: /info
 
@@ -92,27 +115,28 @@ steps:
     settings:
       repo: stevenxie/bincode
       tags:
-        - $(printf '%s-%s' $(cat /i/branch | tr / -) $(cat /i/commit))
         - |
-          $([ $(cat /i/branch) == master ] && \
-             [ $DRONE_BUILD_EVENT == push ] && \
-             echo latest || true)
+          $([ $DRONE_BUILD_EVENT != tag ] && \
+            printf '%s-%s' $(cat /i/branch | tr / -) $(cat /i/commit) || true)
         - |
-          $([ $(cat /i/branch) == master ] && \
-             [ $DRONE_BUILD_EVENT == push ] && \
+          $([ $DRONE_BUILD_EVENT != pull_request ] && \
+            [ $(cat /i/branch) == master ] && \
+            echo latest || true)
+        - |
+          $([ $DRONE_BUILD_EVENT != pull_request ] && \
+            ([ $DRONE_BUILD_EVENT == tag ] || \
+             [ $(cat /i/branch) == master ]) && \
              cat /i/version || true)
       username: stevenxie
       password:
-        from_secret: docker_pass
+        from_secret: docker_token
     volumes:
       - name: info
         path: /i
 
 
 volumes:
+  - name: gopath
+    temp: {}
   - name: info
     temp: {}
-
-trigger:
-  event:
-    exclude: ["tag"]

@@ -7,18 +7,18 @@ import (
 	"net/http"
 	"os"
 
+	"go.stevenxie.me/gopkg/logutil"
+
 	echo "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 
-	"go.stevenxie.me/api/pkg/zero"
+	"go.stevenxie.me/api/v2/pkg/basic"
 )
 
 // New creates a new Server.
-func New(opts ...func(*Config)) *Server {
-	cfg := Config{
-		Logger: zero.Logger(),
-	}
+func New(opts ...basic.Option) *Server {
+	cfg := basic.BuildConfig(opts...)
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -42,26 +42,19 @@ func New(opts ...func(*Config)) *Server {
 	// Create server.
 	return &Server{
 		echo: echo,
-		log:  cfg.Logger,
+		log:  logutil.WithComponent(cfg.Logger, (*Server)(nil)),
 	}
 }
 
-type (
-	// A Server serves an API for encoding and decoding binary representation
-	// formats.
-	Server struct {
-		echo *echo.Echo
-		log  logrus.FieldLogger
+// A Server serves an API for encoding and decoding binary representation
+// formats.
+type Server struct {
+	echo *echo.Echo
+	log  *logrus.Entry
 
-		enc io.Writer
-		dec io.Reader
-	}
-
-	// A Config configures a Server.
-	Config struct {
-		Logger logrus.FieldLogger
-	}
-)
+	enc io.Writer
+	dec io.Reader
+}
 
 // Shutdown gracefully shuts down the server.
 func (srv *Server) Shutdown(ctx context.Context) error {

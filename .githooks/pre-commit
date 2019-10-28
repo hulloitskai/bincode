@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 
-##
-## BEFORE
-##
+set -euo pipefail
+
+# == Before ==
 # Check number of staged files before pre-commit actions.
 STAT_CMD="git diff --name-status"
 STAT_BEFORE="$($STAT_CMD | wc -l)"
 
 
+# # Generate Go source files.
+# make go-generate
+
 # Check if the code is formatted and linted correctly.
-lint() {
-  echo "Performing code check:"
-  make lint || return $?
-}
-lint || exit $?
+make lint
 
 # Hide secrets using git-secret.
 git-secret() {
@@ -28,9 +27,8 @@ git-secret() {
 }
 git-secret || exit $?
 
-##
-## AFTER
-##
+
+# == After ==
 # Check number of staged file after pre-commit actions.
 STAT_AFTER="$($STAT_CMD | wc -l)"
 if ((STAT_AFTER > STAT_BEFORE)); then
